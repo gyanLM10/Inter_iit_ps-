@@ -1,0 +1,19 @@
+[package]
+name = "loki-mcp"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+axum = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+reqwest = { version = "0.12", features = ["json"] }
+tower-http = { version = "0.6", features = ["cors", "trace"] }
+regex = "1"
+urlencoding = "2"
+chrono = "0.4"

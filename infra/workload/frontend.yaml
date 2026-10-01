@@ -1,0 +1,115 @@
+---
+# Frontend (nginx reverse proxy) ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-nginx-config
+  namespace: workload
+data:
+  default.conf: |
+    upstream api_backend {
+        server api.workload.svc.cluster.local:8000;
+    }
+
+    server {
+        listen 80;
+        server_name _;
+
+        # Static landing page
+        location / {
+            root /usr/share/nginx/html;
+            index index.html;
+        }
+
+        # Reverse proxy to API
+        location /api/ {
+            proxy_pass http://api_backend;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_connect_timeout 5s;
+            proxy_read_timeout 10s;
+        }
+
+        # Health check
+        location /nginx-health {
+            access_log off;
+            return 200 "OK\n";
+        }
+    }
+  index.html: |
+    <!DOCTYPE html>
+    <html>
+    <head><title>RCA Lab - Frontend</title></head>
+    <body>
+      <h1>RCA Lab Frontend</h1>
+      <p>API Proxy: <a href="/api/items">/api/items</a></p>
+    </body>
+    </html>
+---
+# Frontend Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: workload
+  labels:
+    app: frontend
+    tier: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+        tier: frontend
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/conf.d/default.conf
+              subPath: default.conf
+            - name: nginx-config
+              mountPath: /usr/share/nginx/html/index.html
+              subPath: index.html
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          livenessProbe:
+            httpGet:
+              path: /nginx-health
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: frontend-nginx-config
+---
+# Frontend Service (NodePort for external access)
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: workload
+  labels:
+    app: frontend
+spec:
+  selector:
+    app: frontend
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 30080
+  type: NodePort

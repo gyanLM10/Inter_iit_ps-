@@ -1,0 +1,11 @@
+{
+    "venvPath": "/Users/gyankritbhuyan/.pyenv/versions",
+    "venv": "3.10.13",
+    "pythonVersion": "3.10",
+    "pythonPlatform": "Darwin",
+    "extraPaths": [
+        "/Users/gyankritbhuyan/.pyenv/versions/3.10.13/lib/python3.10/site-packages"
+    ],
+    "reportMissingImports": false,
+    "reportMissingModuleSource": false
+}

@@ -1,0 +1,170 @@
+---
+# MCP Server Deployments in the rca-agent namespace
+# These run the Rust MCP servers inside the cluster with strict RBAC + NetworkPolicy
+
+# K8s-MCP Server
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-mcp
+  namespace: rca-agent
+  labels:
+    app: k8s-mcp
+    role: mcp-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k8s-mcp
+  template:
+    metadata:
+      labels:
+        app: k8s-mcp
+        role: mcp-server
+    spec:
+      serviceAccountName: rca-agent-sa
+      containers:
+        - name: k8s-mcp
+          image: rca-lab/k8s-mcp:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3000
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: k8s-mcp
+  namespace: rca-agent
+spec:
+  selector:
+    app: k8s-mcp
+  ports:
+    - port: 3000
+      targetPort: 3000
+
+---
+# Prometheus-MCP Server
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus-mcp
+  namespace: rca-agent
+  labels:
+    app: prometheus-mcp
+    role: mcp-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus-mcp
+  template:
+    metadata:
+      labels:
+        app: prometheus-mcp
+        role: mcp-server
+    spec:
+      serviceAccountName: rca-agent-sa
+      containers:
+        - name: prometheus-mcp
+          image: rca-lab/prometheus-mcp:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3001
+          env:
+            - name: PROMETHEUS_URL
+              value: "http://prometheus-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090"
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3001
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-mcp
+  namespace: rca-agent
+spec:
+  selector:
+    app: prometheus-mcp
+  ports:
+    - port: 3001
+      targetPort: 3001
+
+---
+# Loki-MCP Server
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loki-mcp
+  namespace: rca-agent
+  labels:
+    app: loki-mcp
+    role: mcp-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: loki-mcp
+  template:
+    metadata:
+      labels:
+        app: loki-mcp
+        role: mcp-server
+    spec:
+      serviceAccountName: rca-agent-sa
+      containers:
+        - name: loki-mcp
+          image: rca-lab/loki-mcp:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3002
+          env:
+            - name: LOKI_URL
+              value: "http://loki.monitoring.svc.cluster.local:3100"
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3002
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: loki-mcp
+  namespace: rca-agent
+spec:
+  selector:
+    app: loki-mcp
+  ports:
+    - port: 3002
+      targetPort: 3002

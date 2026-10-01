@@ -1,0 +1,23 @@
+# Promtail configuration to ship logs to Loki
+config:
+  clients:
+    - url: http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push
+
+  snippets:
+    pipelineStages:
+      - cri: {}
+      - labeldrop:
+          - filename
+          - stream
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 100m
+    memory: 128Mi
+
+tolerations:
+  - effect: NoSchedule
+    operator: Exists

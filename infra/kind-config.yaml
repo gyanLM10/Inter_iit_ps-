@@ -1,0 +1,28 @@
+# kind cluster configuration for RCA Agent evaluation environment
+# 1 control-plane + 2 worker nodes for realistic scheduling
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: rca-lab
+nodes:
+  - role: control-plane
+    kubeadmConfigPatches:
+      - |
+        kind: InitConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "ingress-ready=true"
+    extraPortMappings:
+      # Prometheus
+      - containerPort: 30090
+        hostPort: 9090
+        protocol: TCP
+      # Loki
+      - containerPort: 30100
+        hostPort: 3100
+        protocol: TCP
+      # Agent API
+      - containerPort: 30080
+        hostPort: 8080
+        protocol: TCP
+  - role: worker
+  - role: worker

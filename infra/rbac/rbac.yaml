@@ -1,0 +1,69 @@
+---
+# ServiceAccount for the RCA Agent
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: rca-agent-sa
+  namespace: rca-agent
+  labels:
+    purpose: rca-agent
+---
+# ClusterRole: READ-ONLY access to core resources
+# ZERO create, update, patch, delete, or exec permissions
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: rca-agent-readonly
+  labels:
+    purpose: rca-agent
+rules:
+  # Core pod information
+  - apiGroups: [""]
+    resources: ["pods", "pods/log"]
+    verbs: ["get", "list", "watch"]
+
+  # Services and endpoints
+  - apiGroups: [""]
+    resources: ["services", "endpoints"]
+    verbs: ["get", "list", "watch"]
+
+  # Events (critical for RCA)
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["get", "list", "watch"]
+
+  # ConfigMaps (for config drift detection)
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list", "watch"]
+
+  # Nodes (for resource context)
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "list", "watch"]
+
+  # Namespaces (for topology mapping)
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["get", "list", "watch"]
+
+  # Deployments and ReplicaSets (for diff detection)
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets", "statefulsets"]
+    verbs: ["get", "list", "watch"]
+---
+# Bind the ServiceAccount to the ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: rca-agent-readonly-binding
+  labels:
+    purpose: rca-agent
+subjects:
+  - kind: ServiceAccount
+    name: rca-agent-sa
+    namespace: rca-agent
+roleRef:
+  kind: ClusterRole
+  name: rca-agent-readonly
+  apiGroup: rbac.authorization.k8s.io
