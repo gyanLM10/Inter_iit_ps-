@@ -275,3 +275,95 @@ Our sandbox operates on 4 layers:
 - Implement parallel tool execution in the Plan phase.
 - Add a Jaeger-MCP server for distributed trace analysis to detect slow DB query bottlenecks.
 - Train a smaller open-source model (e.g., Llama-3-8B) on historical RCA outputs to reduce latency and API costs.
+
+### Repository Structure
+```text
+.
+|-- .gitignore
+|-- LICENSE
+|-- Makefile
+|-- README.md
+|-- agent
+|   |-- .env
+|   |-- .env.example
+|   |-- .flake8
+|   |-- agent
+|   |   |-- __init__.py
+|   |   |-- config.py
+|   |   |-- formatter.py
+|   |   |-- graph.py
+|   |   |-- nodes
+|   |   |   |-- __init__.py
+|   |   |   |-- evaluate.py
+|   |   |   |-- hypothesize.py
+|   |   |   |-- plan_execute.py
+|   |   |   `-- triage.py
+|   |   |-- state.py
+|   |   `-- tools
+|   |       |-- __init__.py
+|   |       |-- k8s_client.py
+|   |       |-- loki_client.py
+|   |       `-- prometheus_client.py
+|   |-- pyproject.toml
+|   |-- pyrightconfig.json
+|   |-- requirements.txt
+|   `-- test_graph.py
+|-- docs
+|   |-- SECURITY_DEMO.md
+|   `-- TECHNICAL_WRITEUP.md
+|-- infra
+|   |-- kind-config.yaml
+|   |-- mcp-deployments.yaml
+|   |-- network-policies
+|   |   `-- policies.yaml
+|   |-- observability
+|   |   |-- install.sh
+|   |   |-- loki-values.yaml
+|   |   |-- prometheus-values.yaml
+|   |   `-- promtail-values.yaml
+|   |-- rbac
+|   |   `-- rbac.yaml
+|   `-- workload
+|       |-- api-app
+|       |   |-- .flake8
+|       |   |-- Dockerfile
+|       |   `-- app.py
+|       |-- api.yaml
+|       |-- frontend.yaml
+|       |-- namespace.yaml
+|       `-- postgres.yaml
+|-- mcp-servers
+|   |-- Cargo.lock
+|   |-- Cargo.toml
+|   |-- k8s-mcp
+|   |   |-- Cargo.toml
+|   |   |-- Dockerfile
+|   |   `-- src
+|   |       |-- handlers.rs
+|   |       `-- main.rs
+|   |-- loki-mcp
+|   |   |-- Cargo.toml
+|   |   |-- Dockerfile
+|   |   `-- src
+|   |       |-- handlers.rs
+|   |       |-- main.rs
+|   |       `-- sanitizer.rs
+|   `-- prometheus-mcp
+|       |-- Cargo.toml
+|       |-- Dockerfile
+|       `-- src
+|           |-- handlers.rs
+|           `-- main.rs
+|-- port-forward.sh
+|-- scenarios
+|   |-- reset_workload.sh
+|   |-- scenario_bad_deploy.sh
+|   |-- scenario_cascade.sh
+|   `-- scenario_oom.sh
+|-- test_formatter.py
+|-- test_graph.py
+|-- tests
+|   `-- test_prompt_injection.sh
+
+21 directories, 66 files
+```
